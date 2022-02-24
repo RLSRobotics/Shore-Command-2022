@@ -6,11 +6,11 @@ class Camera:
     def __init__(self, id):
         self.id = id
         self.name = "cam" + str(id)
-        self.cam = cv.VideoCapture(id)
+        self.cam = cv2.VideoCapture(id)
 
-        self._display = threading.Thread(target=_updateFrame)
+        self._display = threading.Thread(target=self._updateFrame)
         self._display.daemon = False
-        self._display.start();
+        self._display.start()
 
     def _updateFrame(self):
 
@@ -24,4 +24,4 @@ class Camera:
 
 if __name__ == "__main__":
     cam1 = Camera(0)
-    cam2 = Camera(1)
+    # cam2 = Camera(1)
