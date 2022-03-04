@@ -1,7 +1,12 @@
 from inputs import get_gamepad
 import math
 import threading
+import serial
+import time
 
+ARDUINO_PORT = "COM4" # Should probably make this automatically look for the arduino in
+              # the future, or at the very least make it fetch command line
+              # argument.
 
 class XboxController():
     MAX_TRIG_VAL = math.pow(2, 8)
@@ -37,6 +42,7 @@ class XboxController():
         self._monitor_thread.start()
 
     # return the buttons/triggers we want to use
+    # TODO: decide which buttons we want to use
     def read(self):
         x = self.LeftJoystickX
         y = self.LeftJoystickY
@@ -93,3 +99,21 @@ class XboxController():
                     self.UpDPad = event.state
                 elif event.code == 'BTN_TRIGGER_HAPPY4':
                     self.DownDPad = event.state
+
+# uses data from the gamepad to calculate motor power commands for the robot
+# TODO: implement this
+def motorPower(gamepadInputs):
+    return [0,0,0,0,0,0] # (front left, front right, back left, back right,
+                         #  up left, up right)
+                         # ^ my suggested protocol for motor commands
+                         # feel to interpret however.
+
+
+if __name__ == '__main__':
+    controller = XboxController()
+    ser = serial.Serial(ARDUINO_PORT, 9600)
+    while True:
+        command = motorPower(controller.read()) # calculate power based off gamepad
+        ser.write(bytes(command)) # send instructions to arduino as byte stream
+        time.wait(.4) # wait .4 secs between sending a command
+        # TODO: implement receieving sensor data from the arduino
