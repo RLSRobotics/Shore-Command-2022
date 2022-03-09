@@ -38,7 +38,7 @@ class XboxController():
 
         # Initialize the daemon thread which monitors the gamepad events
         self._monitor_thread = threading.Thread(target=self._monitor_controller, args=())
-        self._monitor_thread.daemon = True
+        self._monitor_thread.daemon = False
         self._monitor_thread.start()
 
     # return the buttons/triggers we want to use
@@ -59,6 +59,9 @@ class XboxController():
         while True:
             events = get_gamepad()
             for event in events:
+                if event.code is not "SYN_REPORT":
+                    print(event.code)
+
                 if event.code == 'ABS_Y':
                     self.LeftJoystickY = event.state / XboxController.MAX_JOY_VAL # normalize between -1 and 1
                 elif event.code == 'ABS_X':
@@ -91,6 +94,7 @@ class XboxController():
                     self.Back = event.state
                 elif event.code == 'BTN_START':
                     self.Start = event.state
+                '''
                 elif event.code == 'BTN_TRIGGER_HAPPY1':
                     self.LeftDPad = event.state
                 elif event.code == 'BTN_TRIGGER_HAPPY2':
@@ -99,7 +103,7 @@ class XboxController():
                     self.UpDPad = event.state
                 elif event.code == 'BTN_TRIGGER_HAPPY4':
                     self.DownDPad = event.state
-
+'''
 # uses data from the gamepad to calculate motor power commands for the robot
 # TODO: implement this
 def motorPower(gamepadInputs):
@@ -111,9 +115,9 @@ def motorPower(gamepadInputs):
 
 if __name__ == '__main__':
     controller = XboxController()
-    ser = serial.Serial(ARDUINO_PORT, 9600)
-    while True:
-        command = motorPower(controller.read()) # calculate power based off gamepad
-        ser.write(bytes(command)) # send instructions to arduino as byte stream
-        time.wait(.4) # wait .4 secs between sending a command
+    #ser = serial.Serial(ARDUINO_PORT, 9600)
+    #while True:
+        #command = motorPower(controller.read()) # calculate power based off gamepad
+        #ser.write(bytes(command)) # send instructions to arduino as byte stream
+        #time.wait(.4) # wait .4 secs between sending a command
         # TODO: implement receieving sensor data from the arduino
