@@ -4,7 +4,10 @@ import threading
 import serial
 import time
 
-ARDUINO_PORT = "COM4" # Should probably make this automatically look for the arduino in
+#from using command -----  dmesg | tail -f
+#ARDUINO_PORT = "/dev/ttyACM1"
+
+#ARDUINO_PORT = "COM4" # Should probably make this automatically look for the arduino in
               # the future, or at the very least make it fetch command line
               # argument.
 
@@ -59,8 +62,8 @@ class XboxController():
         while True:
             events = get_gamepad()
             for event in events:
-                if event.code is not "SYN_REPORT":
-                    print(event.code)
+                # if event.code is not "SYN_REPORT":
+                #     print(event.code)
 
                 if event.code == 'ABS_Y':
                     self.LeftJoystickY = event.state / XboxController.MAX_JOY_VAL # normalize between -1 and 1
@@ -94,7 +97,8 @@ class XboxController():
                     self.Back = event.state
                 elif event.code == 'BTN_START':
                     self.Start = event.state
-                '''
+
+                ''' NOTE: OUR TEST GAVE DIFFERENT CODE NAMES FOR DPAD
                 elif event.code == 'BTN_TRIGGER_HAPPY1':
                     self.LeftDPad = event.state
                 elif event.code == 'BTN_TRIGGER_HAPPY2':
@@ -103,11 +107,14 @@ class XboxController():
                     self.UpDPad = event.state
                 elif event.code == 'BTN_TRIGGER_HAPPY4':
                     self.DownDPad = event.state
-'''
+                '''
 # uses data from the gamepad to calculate motor power commands for the robot
 # TODO: implement this
 def motorPower(gamepadInputs):
-    return [0,0,0,0,0,0] # (front left, front right, back left, back right,
+    print(gamepadInputs[0])
+    return gamepadInputs[0] #reads "a"
+
+    #return [0,0,0,0,0,0] # (front left, front right, back left, back right,
                          #  up left, up right)
                          # ^ my suggested protocol for motor commands
                          # feel to interpret however.
@@ -115,9 +122,15 @@ def motorPower(gamepadInputs):
 
 if __name__ == '__main__':
     controller = XboxController()
-    #ser = serial.Serial(ARDUINO_PORT, 9600)
-    #while True:
-        #command = motorPower(controller.read()) # calculate power based off gamepad
-        #ser.write(bytes(command)) # send instructions to arduino as byte stream
-        #time.wait(.4) # wait .4 secs between sending a command
-        # TODO: implement receieving sensor data from the arduino
+    ser = None
+    try:
+        ser = serial.Serial("/dev/ttyACM1", 9600)
+    except:
+        ser = serial.Serial("/dev/ttyACM0", 9600)
+    while True:
+        command = motorPower(controller.read()) # calculate power based off gamepad
+        ser.write(bytes(command)) # send instructions to arduino as byte stream
+        #ser.write(command) # send instructions to arduino as byte stream
+
+        time.sleep(.4) # wait .4 secs between sending a command
+        #TODO: implement receieving sensor data from the arduino

@@ -1,8 +1,10 @@
+#camera, separate from command.py
+
 import cv2
 import threading
 
 class Camera:
-
+ 
     def __init__(self, id):
         self.id = id
         self.name = "cam" + str(id)
