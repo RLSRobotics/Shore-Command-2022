@@ -41,7 +41,7 @@ class XboxController():
 
         # Initialize the daemon thread which monitors the gamepad events
         self._monitor_thread = threading.Thread(target=self._monitor_controller, args=())
-        self._monitor_thread.daemon = False
+        self._monitor_thread.daemon = True
         self._monitor_thread.start()
 
     # return the buttons/triggers we want to use
@@ -111,8 +111,8 @@ class XboxController():
 # uses data from the gamepad to calculate motor power commands for the robot
 # TODO: implement this
 def motorPower(gamepadInputs):
-    print(gamepadInputs[0])
-    return gamepadInputs[0] #reads "a"
+    #print(gamepadInputs[0])
+    return gamepadInputs[0] #reads "a": 1/0
 
     #return [0,0,0,0,0,0] # (front left, front right, back left, back right,
                          #  up left, up right)
@@ -121,16 +121,38 @@ def motorPower(gamepadInputs):
 
 
 if __name__ == '__main__':
-    controller = XboxController()
-    ser = None
-    try:
-        ser = serial.Serial("/dev/ttyACM1", 9600)
-    except:
-        ser = serial.Serial("/dev/ttyACM0", 9600)
-    while True:
-        command = motorPower(controller.read()) # calculate power based off gamepad
-        ser.write(bytes(command)) # send instructions to arduino as byte stream
-        #ser.write(command) # send instructions to arduino as byte stream
+    #controller = XboxController()
+    ser = serial.Serial("/dev/ttyACM1", 9600, timeout=1)
 
-        time.sleep(.4) # wait .4 secs between sending a command
+    while True:
+        #command = motorPower(controller.read()) # calculate power based off gamepad
+        #ser.write(bytes(command)) # send instructions to arduino as byte stream
+        
+        # command = input("0 or 1: ")
+        # print(command)
+        #ser.write(bytes(command, "utf-8"))
+
+
+
+        ser.write(bytes("0", "utf-8"))
+
+        time.sleep(.5) 
+
+        response = ser.readline()
+        print(response)
+
+        ser.write(bytes("1", "utf-8"))
+
+        time.sleep(.5) 
+
+        response = ser.readline()
+        print(response)
+        
+
+        # if command == 1:
+        #     ser.write(bytes("a", "utf-8"))
+        # else:
+        #     ser.write(bytes("b", "utf-8"))
+
+        # wait .2 secs between sending a command
         #TODO: implement receieving sensor data from the arduino
