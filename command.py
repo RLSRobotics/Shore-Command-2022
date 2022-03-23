@@ -5,7 +5,7 @@ import serial
 import time
 
 #from using command -----  dmesg | tail -f
-#ARDUINO_PORT = "/dev/ttyACM1"
+ARDUINO_PORT = "/dev/ttyACM0"
 
 #ARDUINO_PORT = "COM4" # Should probably make this automatically look for the arduino in
               # the future, or at the very least make it fetch command line
@@ -120,11 +120,23 @@ def motorPower(gamepadInputs):
                          # feel to interpret however.
 
 
+def wait(ser, timeout):
+    t = time.time()
+    while ser.in_waiting == 0:
+        if time.time() - t > timeout:
+            print("wait timed out")
+            break
+    print("receive wait: " + str(time.time() - t) + "s")
 if __name__ == '__main__':
     #controller = XboxController()
-    ser = serial.Serial("/dev/ttyACM1", 9600, timeout=1)
+    ser = serial.Serial(ARDUINO_PORT, 9600, timeout=0.01)
+
+    time.sleep(1)
 
     while True:
+        ser.reset_input_buffer()
+        ser.reset_output_buffer()
+
         #command = motorPower(controller.read()) # calculate power based off gamepad
         #ser.write(bytes(command)) # send instructions to arduino as byte stream
         
@@ -133,20 +145,29 @@ if __name__ == '__main__':
         #ser.write(bytes(command, "utf-8"))
 
 
+        ser.write(bytes("2", "utf-8"))
 
-        ser.write(bytes("0", "utf-8"))
+        time.sleep(.1)
+        
+        wait(ser, 2)
 
-        time.sleep(.5) 
+        response = ser.readline()
+        print(response)
+        #print(int.from_bytes(response, "little"))
+
+
+        ser.write(bytes("3", "utf-8"))
+
+        #while ser.in_waiting: pass
+        
+        time.sleep(.1)
+
+        wait(ser, 2)
 
         response = ser.readline()
         print(response)
 
-        ser.write(bytes("1", "utf-8"))
-
-        time.sleep(.5) 
-
-        response = ser.readline()
-        print(response)
+        #print(int.from_bytes(response, "little"))
         
 
         # if command == 1:
