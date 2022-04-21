@@ -55,7 +55,7 @@ class XboxController():
         d = self.B
         rb = self.RightBumper
 
-        return [a, b, c, d]
+        return [a, b, c, d, x, y]
 
     # Update the state varibles every time there is an event
     def _monitor_controller(self):
@@ -112,7 +112,7 @@ class XboxController():
 # TODO: implement this
 def motorPower(gamepadInputs):
     #print(gamepadInputs[0])
-    return gamepadInputs[0] #reads "a": 1/0
+    return (gamepadInputs[0], gamepadInputs[5]) #reads "a": 1/0; reads left joystick y value
 
     #return [0,0,0,0,0,0] # (front left, front right, back left, back right,
                          #  up left, up right)
@@ -127,8 +127,12 @@ def wait(ser, timeout):
             print("wait timed out")
             break
     print("receive wait: " + str(time.time() - t) + "s")
+
+#put the loop function in a big while loop with a try clause so the program automatically sleeps and restarts when an error is thrown
 if __name__ == '__main__':
-    #controller = XboxController()
+    # while True:
+        #try:
+    controller = XboxController()
     ser = serial.Serial(ARDUINO_PORT, 9600, timeout=0.01)
 
     time.sleep(1)
@@ -137,43 +141,23 @@ if __name__ == '__main__':
         ser.reset_input_buffer()
         ser.reset_output_buffer()
 
-        #command = motorPower(controller.read()) # calculate power based off gamepad
-        #ser.write(bytes(command)) # send instructions to arduino as byte stream
+        raw = motorPower(controller.read())
+        instructions = [raw[0], int(abs(raw[1] - 1) * 100)]
+        if instructions[1] > 95 and instructions[1] < 105:
+            instructions[1] = 100 #if controller is just on the edge don't move anything
+
+        print("sending: " + str(instructions))
+
+        ser.write(bytearray(instructions)) #write a bytearray that takes a list of integers from 0 to 255
         
-        # command = input("0 or 1: ")
-        # print(command)
-        #ser.write(bytes(command, "utf-8"))
 
-
-        ser.write(bytes("2", "utf-8"))
-
-        time.sleep(.1)
+        time.sleep(.05)
         
-        wait(ser, 2)
-
-        response = ser.readline()
-        print(response)
-        #print(int.from_bytes(response, "little"))
-
-
-        ser.write(bytes("3", "utf-8"))
-
-        #while ser.in_waiting: pass
-        
-        time.sleep(.1)
-
-        wait(ser, 2)
+        wait(ser, 2) #waits for arduino response for up to 2 seconds
 
         response = ser.readline()
         print(response)
 
-        #print(int.from_bytes(response, "little"))
-        
-
-        # if command == 1:
-        #     ser.write(bytes("a", "utf-8"))
-        # else:
-        #     ser.write(bytes("b", "utf-8"))
-
-        # wait .2 secs between sending a command
-        #TODO: implement receieving sensor data from the arduino
+        # except:
+        #     print("error detected, waiting 1 sec")
+        #     time.sleep(1)
