@@ -5,7 +5,8 @@ import serial
 import time
 
 #from using command -----  dmesg | tail -f
-ARDUINO_PORT = "/dev/ttyACM0"
+#ARDUINO_PORT = "/dev/ttyACM0"
+ARDUINO_PORT = "COM3"
 
 #ARDUINO_PORT = "COM4" # Should probably make this automatically look for the arduino in
               # the future, or at the very least make it fetch command line
