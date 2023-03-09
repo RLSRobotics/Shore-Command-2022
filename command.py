@@ -48,24 +48,15 @@ class XboxController():
     # return the buttons/triggers we want to use
     # TODO: decide which buttons we want to use
     def read(self):
-        x = self.LeftJoystickX
-        y = self.LeftJoystickY
-        a = self.A
-        b = self.X
-        c = self.Y
-        d = self.B
-        rb = self.RightBumper
-
-        return [a, b, c, d, x, y]
+        #note: "A" is for testing
+        return [self.A, self.LeftJoystickX, self.LeftJoystickY, self.RightJoystickX, self.RightJoystickY,
+        self.RightBumper, self.LeftBumper, self.RightTrigger, self.LeftTrigger], self.CameraToggle
 
     # Update the state varibles every time there is an event
     def _monitor_controller(self):
         while True:
             events = get_gamepad()
             for event in events:
-                # if event.code is not "SYN_REPORT":
-                #     print(event.code)
-
                 if event.code == 'ABS_Y':
                     self.LeftJoystickY = event.state / XboxController.MAX_JOY_VAL # normalize between -1 and 1
                 elif event.code == 'ABS_X':
@@ -95,31 +86,9 @@ class XboxController():
                 elif event.code == 'BTN_THUMBR':
                     self.RightThumb = event.state
                 elif event.code == 'BTN_SELECT':
-                    self.Back = event.state
+                    self.CameraToggle = event.state
                 elif event.code == 'BTN_START':
                     self.Start = event.state
-
-                ''' NOTE: OUR TEST GAVE DIFFERENT CODE NAMES FOR DPAD
-                elif event.code == 'BTN_TRIGGER_HAPPY1':
-                    self.LeftDPad = event.state
-                elif event.code == 'BTN_TRIGGER_HAPPY2':
-                    self.RightDPad = event.state
-                elif event.code == 'BTN_TRIGGER_HAPPY3':
-                    self.UpDPad = event.state
-                elif event.code == 'BTN_TRIGGER_HAPPY4':
-                    self.DownDPad = event.state
-                '''
-# uses data from the gamepad to calculate motor power commands for the robot
-# TODO: implement this
-def motorPower(gamepadInputs):
-    #print(gamepadInputs[0])
-    return (gamepadInputs[0], gamepadInputs[5]) #reads "a": 1/0; reads left joystick y value
-
-    #return [0,0,0,0,0,0] # (front left, front right, back left, back right,
-                         #  up left, up right)
-                         # ^ my suggested protocol for motor commands
-                         # feel to interpret however.
-
 
 def wait(ser, timeout):
     t = time.time()
@@ -131,8 +100,6 @@ def wait(ser, timeout):
 
 #put the loop function in a big while loop with a try clause so the program automatically sleeps and restarts when an error is thrown
 if __name__ == '__main__':
-    # while True:
-        #try:
     controller = XboxController()
     ser = serial.Serial(ARDUINO_PORT, 9600, timeout=0.01)
 
@@ -142,8 +109,12 @@ if __name__ == '__main__':
         ser.reset_input_buffer()
         ser.reset_output_buffer()
 
-        raw = motorPower(controller.read())
-        instructions = [raw[0], int(abs(raw[1] - 1) * 100)]
+        raw, toggle_camera = controller.read() #9 inputs total for instructions
+
+        instructions = [raw[0], 0, 0, 0, 0, 0, 0] #set
+
+        instructions[1] = int(abs(raw[1] - 1) * 100)
+
         if instructions[1] > 95 and instructions[1] < 105:
             instructions[1] = 100 #if controller is just on the edge don't move anything
 
@@ -158,7 +129,3 @@ if __name__ == '__main__':
 
         response = ser.readline()
         print(response)
-
-        # except:
-        #     print("error detected, waiting 1 sec")
-        #     time.sleep(1)
