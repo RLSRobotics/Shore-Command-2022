@@ -109,14 +109,25 @@ if __name__ == '__main__':
         ser.reset_input_buffer()
         ser.reset_output_buffer()
 
+        '''raw inputs:
+        [self.A (testing), self.LeftJoystickX, self.LeftJoystickY, self.RightJoystickX, self.RightJoystickY,
+        self.RightBumper, self.LeftBumper, self.RightTrigger, self.LeftTrigger]'''
+
         raw, toggle_camera = controller.read() #9 inputs total for instructions
 
         instructions = [raw[0], 0, 0, 0, 0, 0, 0] #set
 
-        instructions[1] = int(abs(raw[1] - 1) * 100)
+        dx, dy = raw[1], raw[2]
 
-        if instructions[1] > 95 and instructions[1] < 105:
-            instructions[1] = 100 #if controller is just on the edge don't move anything
+        #(x+y)/sqrt(x^2+y^2) for -1 to 1, convert to 0 to 200 scale
+        instructions[1] =  (dx + dy) / (dx ** 2 + dy ** 2)
+        instructions[1] = int(abs(instructions[1] - 1) * 100)
+        instructions[6] = instructions[1]
+
+        #(x+y)/sqrt(x^2+y^2) for -1 to 1, convert to 0 to 200 scale
+        instructions[3] =  (dx - dy) / (dx ** 2 + dy ** 2)
+        instructions[3] = int(abs(instructions[3] - 1) * 100)
+        instructions[4] = instructions[3]
 
         print("sending: " + str(instructions))
 
